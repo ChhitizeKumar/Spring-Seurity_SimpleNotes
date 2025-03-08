@@ -1,7 +1,7 @@
 package com.secure.notes.api;
 
 import com.secure.notes.models.Note;
-import com.secure.notes.service.NoteService;
+import com.secure.notes.services.NoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
