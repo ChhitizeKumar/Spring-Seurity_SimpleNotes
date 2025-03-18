@@ -13,12 +13,14 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 //import org.springframework.security.core.userdetails.User;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import javax.sql.DataSource;
 
@@ -50,15 +52,25 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests((requests) ->
-                requests
-//                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+        http.csrf(csrf ->
+                csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .ignoringRequestMatchers("/api/auth/public/**")
+        );
+//        if not disable CSRF token is required for authentication
+//        http.csrf(AbstractHttpConfigurer::disable);
+
+        http.authorizeHttpRequests((requests)
+                -> requests
+                .requestMatchers("/api/csrf-token").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 //                        .requestMatchers("/public/**").permitAll()
                         .anyRequest().authenticated());
-        //if not disable CSRF token is required for authentication
-        http.csrf(AbstractHttpConfigurer::disable);
+
+
+//        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.addFilterBefore(new CustomLoggingFilter(), UsernamePasswordAuthenticationFilter.class);
-        http.addFilterAfter(new RequestValidationFilter(), CustomLoggingFilter.class);
+//        http.addFilterAfter(new RequestValidationFilter(), CustomLoggingFilter.class);
 //        http.formLogin(withDefaults());
         http.httpBasic(withDefaults());
         return http.build();
